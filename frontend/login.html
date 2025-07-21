@@ -40,6 +40,7 @@
             .then(res => {
                 if (res.status === 200 && res.body.full_name) {
                     localStorage.setItem('userFullName', res.body.full_name);
+                    localStorage.setItem('userEmail', email);
                     window.location.href = 'index.html';
                 } else {
                     alert(res.body.error || 'Login failed.');

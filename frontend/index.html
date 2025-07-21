@@ -126,7 +126,12 @@
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="card-metric text-center">
-                    <div class="metric-label">Monthly Budget</div>
+                    <div class="metric-label d-flex justify-content-center align-items-center">
+                        Monthly Budget
+                        <button class="btn btn-link p-0 ms-2" id="editBudgetBtn" title="Edit Budget" style="font-size:1.2rem;">
+                            🖉
+                        </button>
+                    </div>
                     <div class="metric-value">₹<span id="budgetValue">1800.00</span></div>
                 </div>
             </div>
@@ -166,6 +171,24 @@
             </button>
         </div>
     </div>
+    <!-- Modal for editing budget -->
+    <div class="modal fade" id="editBudgetModal" tabindex="-1" aria-labelledby="editBudgetModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editBudgetModalLabel">Set Monthly Budget</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="number" min="0" class="form-control" id="newBudgetInput" placeholder="Enter new budget">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="saveBudgetBtn">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <script>
         // Set welcome text with user's name
         const userFullName = localStorage.getItem('userFullName');
@@ -177,6 +200,63 @@
         // Reset button functionality (placeholder)
         document.getElementById('resetBtn').addEventListener('click', function() {
             alert('Reset functionality coming soon!');
+        });
+
+        // Budget edit logic
+        const budgetValueElem = document.getElementById('budgetValue');
+        const editBudgetBtn = document.getElementById('editBudgetBtn');
+        const editBudgetModal = new bootstrap.Modal(document.getElementById('editBudgetModal'));
+        const newBudgetInput = document.getElementById('newBudgetInput');
+        const saveBudgetBtn = document.getElementById('saveBudgetBtn');
+
+        // Get user email from localStorage (set after login)
+        const userEmail = localStorage.getItem('userEmail');
+
+        // Fetch budget from backend if user is logged in
+        if (userEmail) {
+            fetch(`http://localhost:5000/api/budget?email=${encodeURIComponent(userEmail)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.budget !== undefined) {
+                        budgetValueElem.textContent = parseFloat(data.budget).toFixed(2);
+                        localStorage.setItem('monthlyBudget', parseFloat(data.budget).toFixed(2));
+                    }
+                });
+        }
+
+        editBudgetBtn.addEventListener('click', function() {
+            newBudgetInput.value = budgetValueElem.textContent;
+            editBudgetModal.show();
+        });
+
+        saveBudgetBtn.addEventListener('click', function() {
+            const newBudget = parseFloat(newBudgetInput.value);
+            if (!isNaN(newBudget) && newBudget >= 0) {
+                budgetValueElem.textContent = newBudget.toFixed(2);
+                localStorage.setItem('monthlyBudget', newBudget.toFixed(2));
+                // Update budget in backend if user is logged in
+                if (userEmail) {
+                    fetch('http://localhost:5000/api/budget', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: userEmail, budget: newBudget })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.message) {
+                            // Optionally show a success message
+                        } else if (data.error) {
+                            alert(data.error);
+                        }
+                    })
+                    .catch(() => {
+                        alert('Error updating budget in server.');
+                    });
+                }
+                editBudgetModal.hide();
+            } else {
+                alert('Please enter a valid budget amount.');
+            }
         });
     </script>
 </body>

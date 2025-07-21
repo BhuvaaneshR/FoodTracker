@@ -29,6 +29,7 @@ def signup():
     full_name = data.get('full_name')
     email = data.get('email')
     password = data.get('password')
+    budget = data.get('budget', 0)
 
     if not (full_name and email and password):
         return jsonify({'error': 'Missing required fields'}), 400
@@ -39,7 +40,7 @@ def signup():
         return jsonify({'error': 'Email already registered'}), 409
 
     password_hash = bcrypt.hash(password)
-    user = User(full_name=full_name, email=email, password_hash=password_hash)
+    user = User(full_name=full_name, email=email, password_hash=password_hash, budget=budget)
 
     session.add(user)
     session.commit()
@@ -62,6 +63,37 @@ def login():
         return jsonify({'message': 'Login successful', 'full_name': full_name}), 200
     session.close()
     return jsonify({'error': 'Invalid email or password'}), 401
+
+@app.route('/api/budget', methods=['GET'])
+def get_budget():
+    email = request.args.get('email')
+    if not email:
+        return jsonify({'error': 'Missing email'}), 400
+    session = SessionLocal()
+    user = session.query(User).filter_by(email=email).first()
+    if user:
+        budget = float(user.budget) if user.budget is not None else 0.0
+        session.close()
+        return jsonify({'budget': budget}), 200
+    session.close()
+    return jsonify({'error': 'User not found'}), 404
+
+@app.route('/api/budget', methods=['POST'])
+def set_budget():
+    data = request.json
+    email = data.get('email')
+    budget = data.get('budget')
+    if not (email and budget is not None):
+        return jsonify({'error': 'Missing email or budget'}), 400
+    session = SessionLocal()
+    user = session.query(User).filter_by(email=email).first()
+    if user:
+        user.budget = budget
+        session.commit()
+        session.close()
+        return jsonify({'message': 'Budget updated successfully'}), 200
+    session.close()
+    return jsonify({'error': 'User not found'}), 404
 
 if __name__ == "__main__":
     app.run(debug=True)
