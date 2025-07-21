@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Menu - FoodTracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">FoodTracker</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <h2 class="mb-4 text-center">Food Menu</h2>
+        <form id="addDishForm" class="mb-4">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label for="dishName" class="form-label">Dish Name</label>
+                    <input type="text" class="form-control" id="dishName" required />
+                </div>
+                <div class="col-md-3">
+                    <label for="dishType" class="form-label">Type</label>
+                    <select class="form-select" id="dishType" required>
+                        <option value="">Select</option>
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Lunch">Lunch</option>
+                        <option value="Dinner">Dinner</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="dishPrice" class="form-label">Price (₹)</label>
+                    <input type="number" min="0" class="form-control" id="dishPrice" required />
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary">Add Dish</button>
+                </div>
+            </div>
+        </form>
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Dish Name</th>
+                    <th>Type</th>
+                    <th>Price (₹)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="menuTableBody">
+                <!-- Menu items will be inserted here -->
+            </tbody>
+        </table>
+        <!-- Edit Dish Modal -->
+        <div class="modal fade" id="editDishModal" tabindex="-1" aria-labelledby="editDishModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editDishModalLabel">Edit Dish</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editDishForm">
+                            <input type="hidden" id="editDishId" />
+                            <div class="mb-3">
+                                <label for="editDishName" class="form-label">Dish Name</label>
+                                <input type="text" class="form-control" id="editDishName" required />
+                            </div>
+                            <div class="mb-3">
+                                <label for="editDishType" class="form-label">Type</label>
+                                <select class="form-select" id="editDishType" required>
+                                    <option value="Breakfast">Breakfast</option>
+                                    <option value="Lunch">Lunch</option>
+                                    <option value="Dinner">Dinner</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editDishPrice" class="form-label">Price (₹)</label>
+                                <input type="number" min="0" class="form-control" id="editDishPrice" required />
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function fetchMenu() {
+            fetch('http://localhost:5000/api/dishes')
+                .then(res => res.json())
+                .then(menu => {
+                    const menuTableBody = document.getElementById('menuTableBody');
+                    menuTableBody.innerHTML = '';
+                    menu.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td>${item.name}</td><td>${item.type}</td><td>₹${parseFloat(item.price).toFixed(2)}</td><td><button class='btn btn-warning btn-sm me-2 edit-dish-btn' data-id='${item.id}' data-name='${item.name}' data-type='${item.type}' data-price='${item.price}'>Edit</button><button class='btn btn-danger btn-sm delete-dish-btn' data-id='${item.id}'>Delete</button></td>`;
+                        menuTableBody.appendChild(row);
+                    });
+                    // Add event listeners for edit buttons
+                    document.querySelectorAll('.edit-dish-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            document.getElementById('editDishId').value = this.getAttribute('data-id');
+                            document.getElementById('editDishName').value = this.getAttribute('data-name');
+                            document.getElementById('editDishType').value = this.getAttribute('data-type');
+                            document.getElementById('editDishPrice').value = this.getAttribute('data-price');
+                            const editDishModal = new bootstrap.Modal(document.getElementById('editDishModal'));
+                            editDishModal.show();
+                        });
+                    });
+                    // Add event listeners for delete buttons
+                    document.querySelectorAll('.delete-dish-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const dishId = this.getAttribute('data-id');
+                            if (confirm('Are you sure you want to delete this dish?')) {
+                                fetch(`http://localhost:5000/api/dishes/${dishId}`, {
+                                    method: 'DELETE'
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.message) {
+                                        fetchMenu();
+                                    } else if (data.error) {
+                                        alert(data.error);
+                                    }
+                                })
+                                .catch(() => {
+                                    alert('Error deleting dish.');
+                                });
+                            }
+                        });
+                    });
+                });
+        }
+        fetchMenu();
+        document.getElementById('addDishForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('dishName').value.trim();
+            const type = document.getElementById('dishType').value;
+            const price = parseFloat(document.getElementById('dishPrice').value);
+            if (!name || !type || isNaN(price) || price < 0) {
+                alert('Please enter valid dish details.');
+                return;
+            }
+            fetch('http://localhost:5000/api/dishes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, type, price })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message) {
+                    fetchMenu();
+                    document.getElementById('addDishForm').reset();
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(() => {
+                alert('Error adding dish.');
+            });
+        });
+        document.getElementById('editDishForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editDishId').value;
+            const name = document.getElementById('editDishName').value.trim();
+            const type = document.getElementById('editDishType').value;
+            const price = parseFloat(document.getElementById('editDishPrice').value);
+            if (!name || !type || isNaN(price) || price < 0) {
+                alert('Please enter valid dish details.');
+                return;
+            }
+            fetch(`http://localhost:5000/api/dishes/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, type, price })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message) {
+                    fetchMenu();
+                    const editDishModal = bootstrap.Modal.getInstance(document.getElementById('editDishModal'));
+                    editDishModal.hide();
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(() => {
+                alert('Error updating dish.');
+            });
+        });
+    </script>
+</body>
+</html> 

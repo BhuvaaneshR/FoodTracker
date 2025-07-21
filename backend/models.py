@@ -11,4 +11,11 @@ class User(Base):
     full_name = Column(String(255), nullable=False)
     password_hash = Column(String(255), nullable=False)
     budget = Column(Numeric(10, 2), default=0)
-    created_at = Column(DateTime, default=datetime.utcnow) 
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Dish(Base):
+    __tablename__ = 'dishes'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+    type = Column(String(50), nullable=False)
+    price = Column(Numeric(10, 2), nullable=False) 
