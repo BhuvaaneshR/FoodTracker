@@ -2,10 +2,11 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, User, Dish
+from models import Base, User, Dish, MealLog
 from passlib.hash import bcrypt
 import os
 from db_config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
+from datetime import date, datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -39,7 +40,7 @@ def signup():
         return jsonify({'error': 'Email already registered'}), 409
 
     password_hash = bcrypt.hash(password)
-    user = User(full_name=full_name, email=email, password_hash=password_hash, budget=budget)
+    user = User(full_name=full_name, email=email, password_hash=password_hash, monthly_budget=budget, budget=budget)
 
     session.add(user)
     session.commit()
@@ -90,7 +91,8 @@ def set_budget():
     session = SessionLocal()
     user = session.query(User).filter_by(email=email).first()
     if user:
-        user.budget = float(budget)
+        user.monthly_budget = budget
+        user.budget = budget
         session.commit()
         session.close()
         return jsonify({'message': 'Budget updated successfully'}), 200
@@ -153,6 +155,128 @@ def edit_dish(dish_id):
     session.commit()
     session.close()
     return jsonify({'message': 'Dish updated successfully'}), 200
+
+@app.route('/api/meals/today', methods=['GET'])
+def get_todays_meals():
+    email = request.args.get('email')
+    if not email:
+        return jsonify({'error': 'Missing email'}), 400
+    session = SessionLocal()
+    today = date.today()
+    meals = session.query(MealLog).filter_by(user_email=email).all()
+    result = []
+    for m in meals:
+        # Only include if meal date matches system date
+        meal_date = m.date if isinstance(m.date, date) else datetime.strptime(str(m.date), '%Y-%m-%d').date()
+        if meal_date == today:
+            dish = session.query(Dish).filter_by(name=m.dish_name).first()
+            dish_type = dish.type if dish else ''
+            result.append({'dish_name': m.dish_name, 'date': m.date.isoformat(), 'type': dish_type})
+    session.close()
+    return jsonify(result), 200
+
+@app.route('/api/meals/history', methods=['GET'])
+def get_meal_history():
+    email = request.args.get('email')
+    if not email:
+        return jsonify({'error': 'Missing email'}), 400
+    session = SessionLocal()
+    meals = session.query(MealLog).filter_by(user_email=email).order_by(MealLog.date.desc()).all()
+    result = []
+    for m in meals:
+        dish = session.query(Dish).filter_by(name=m.dish_name).first()
+        price = float(dish.price) if dish else 0.0
+        dish_type = dish.type if dish else ''
+        result.append({'id': m.id, 'dish_name': m.dish_name, 'date': m.date.isoformat(), 'price': price, 'type': dish_type})
+    session.close()
+    return jsonify(result), 200
+
+@app.route('/api/meals/summary', methods=['GET'])
+def get_meal_summary():
+    email = request.args.get('email')
+    if not email:
+        return jsonify({'error': 'Missing email'}), 400
+    session = SessionLocal()
+    user = session.query(User).filter_by(email=email).first()
+    if not user:
+        session.close()
+        return jsonify({'error': 'User not found'}), 404
+    # Calculate total spent
+    meals = session.query(MealLog).filter_by(user_email=email).all()
+    total_spent = 0.0
+    for m in meals:
+        dish = session.query(Dish).filter_by(name=m.dish_name).first()
+        if dish:
+            total_spent += float(dish.price)
+    remaining_balance = float(user.budget)
+    monthly_budget = float(user.monthly_budget)
+    session.close()
+    return jsonify({
+        'monthly_budget': monthly_budget,
+        'total_spent': total_spent,
+        'remaining_balance': remaining_balance
+    }), 200
+
+@app.route('/api/meals/<int:meal_id>', methods=['DELETE'])
+def delete_meal(meal_id):
+    session = SessionLocal()
+    meal = session.query(MealLog).filter_by(id=meal_id).first()
+    if not meal:
+        session.close()
+        return jsonify({'error': 'Meal not found'}), 404
+    # Refund the price to the user's budget
+    dish = session.query(Dish).filter_by(name=meal.dish_name).first()
+    user = session.query(User).filter_by(email=meal.user_email).first()
+    if dish and user:
+        user.budget = float(user.budget) + float(dish.price)
+    session.delete(meal)
+    session.commit()
+    session.close()
+    return jsonify({'message': 'Meal deleted successfully'}), 200
+
+@app.route('/api/meals', methods=['POST'])
+def log_meal():
+    data = request.json
+    user_email = data.get('user_email')
+    dish_name = data.get('dish_name')
+    date_str = data.get('date')
+    if not (user_email and dish_name and date_str):
+        return jsonify({'error': 'Missing required fields'}), 400
+    session = SessionLocal()
+    # Get dish price
+    dish = session.query(Dish).filter_by(name=dish_name).first()
+    if not dish:
+        session.close()
+        return jsonify({'error': 'Dish not found in menu'}), 404
+    price = float(dish.price)
+    # Log meal
+    meal = MealLog(user_email=user_email, dish_name=dish_name, date=date_str)
+    session.add(meal)
+    # Deduct price from user's budget
+    user = session.query(User).filter_by(email=user_email).first()
+    if user:
+        user.budget = float(user.budget) - price
+    session.commit()
+    session.close()
+    return jsonify({'message': 'Meal logged successfully', 'deducted': price}), 201
+
+@app.route('/api/change_password', methods=['POST'])
+def change_password():
+    data = request.json
+    email = data.get('email')
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    if not (email and old_password and new_password):
+        return jsonify({'error': 'Missing required fields'}), 400
+    session = SessionLocal()
+    user = session.query(User).filter_by(email=email).first()
+    if not user or not bcrypt.verify(old_password, user.password_hash):
+        session.close()
+        return jsonify({'error': 'Invalid email or old password'}), 401
+    user.password_hash = bcrypt.hash(new_password)
+    session.commit()
+    session.close()
+    return jsonify({'message': 'Password changed successfully'}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)

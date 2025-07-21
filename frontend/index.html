@@ -1,180 +1,296 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FoodTracker Home</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <style>
-    /* ... same styles as you posted earlier ... */
-  </style>
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+   <title>FoodTracker Home</title>
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+   <style>
+      body {
+         background: linear-gradient(135deg, #e8f6ef 0%, #f8fbff 100%);
+         min-height: 100vh;
+         font-family: 'Inter', Arial, sans-serif;
+      }
+      .navbar {
+         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+         font-weight: 600;
+      }
+      .dashboard-header {
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         padding: 2rem 0 1.5rem 0;
+      }
+      .dashboard-header .logo {
+         font-size: 2rem;
+         font-weight: 700;
+         color: #1a3c34;
+         display: flex;
+         align-items: center;
+      }
+      .dashboard-header .logo-icon {
+         font-size: 2rem;
+         margin-right: 0.5rem;
+         color: #4caf50;
+      }
+      .dashboard-header .reset-btn {
+         font-size: 1.1rem;
+      }
+      .card-metric {
+         border-radius: 16px;
+         box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+         padding: 1.5rem 1.2rem;
+         margin-bottom: 1rem;
+         background: #fff;
+         min-width: 220px;
+      }
+      .card-metric .metric-label {
+         font-size: 1rem;
+         color: #555;
+         font-weight: 500;
+      }
+      .card-metric .metric-value {
+         font-size: 2rem;
+         font-weight: 700;
+         letter-spacing: 1px;
+      }
+      .card-metric .metric-value.red {
+         color: #e53935;
+      }
+      .card-metric .metric-value.green {
+         color: #43a047;
+      }
+      .card-metric .progress {
+         height: 8px;
+         margin-top: 0.5rem;
+         background: #e0f2f1;
+         border-radius: 4px;
+      }
+      .card-metric .progress-bar {
+         border-radius: 4px;
+      }
+      .meals-section {
+         background: #fff;
+         border-radius: 16px;
+         box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+         padding: 2rem 1.5rem;
+         margin-bottom: 2rem;
+      }
+      .meals-section .meals-header {
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         margin-bottom: 1.5rem;
+      }
+      .meals-section .meals-header .meals-title {
+         font-size: 1.3rem;
+         font-weight: 600;
+         display: flex;
+         align-items: center;
+         gap: 0.5rem;
+      }
+      .meals-section .meals-header .meals-count {
+         background: #f1f3f4;
+         border-radius: 12px;
+         padding: 0.2rem 0.8rem;
+         font-size: 0.95rem;
+         color: #333;
+         font-weight: 500;
+      }
+      .meals-section .no-meals {
+         text-align: center;
+         color: #888;
+         margin-top: 2rem;
+      }
+      .meals-section .no-meals .icon {
+         font-size: 3rem;
+         color: #d1d5db;
+         margin-bottom: 0.5rem;
+      }
+      .meals-section .no-meals .no-meals-title {
+         font-size: 1.1rem;
+         font-weight: 600;
+         margin-bottom: 0.2rem;
+      }
+      .action-btns {
+         display: flex;
+         gap: 1.5rem;
+         margin-bottom: 2rem;
+      }
+      .action-btns .btn {
+         font-size: 1.2rem;
+         padding: 1.1rem 0;
+         border-radius: 10px;
+         font-weight: 600;
+         letter-spacing: 0.5px;
+      }
+      .action-btns .btn-success {
+         background: #16a34a;
+         border: none;
+      }
+      .action-btns .btn-success:hover {
+         background: #15803d;
+      }
+      .action-btns .btn-outline-secondary {
+         background: #f8fafc;
+         border: 1.5px solid #e0e0e0;
+         color: #222;
+      }
+      .action-btns .btn-outline-secondary:hover {
+         background: #e0e0e0;
+         color: #111;
+      }
+      @media (max-width: 900px) {
+         .dashboard-header, .action-btns {
+            flex-direction: column;
+            align-items: stretch;
+         }
+         .dashboard-header {
+            gap: 0.5rem;
+         }
+      }
+      @media (max-width: 600px) {
+         .card-metric {
+            min-width: 0;
+         }
+         .meals-section {
+            padding: 1.2rem 0.5rem;
+         }
+      }
+   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container">
-      <a class="navbar-brand" href="index.html">FoodTracker</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="set_budget.html" id="setBudgetNav">Set Monthly Budget</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="login.html" id="signOutNav">Sign Out</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-  <div class="container py-3">
-    <div class="dashboard-header">
-      <div class="logo">
-        <span class="logo-icon">🍴</span> Meal Tracker
-      </div>
-      <div class="reset-btn">
-        <button class="btn btn-outline-secondary" id="resetBtn"><span class="me-1">⟳</span>Reset</button>
-      </div>
-    </div>
+   <!-- Navbar -->
+   <nav class="navbar navbar-expand-lg navbar-light bg-light">
+     <div class="container">
+       <a class="navbar-brand" href="index.html">FoodTracker</a>
+       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+         <span class="navbar-toggler-icon"></span>
+       </button>
+       <div class="collapse navbar-collapse" id="navbarNav">
+         <ul class="navbar-nav ms-auto">
+           <li class="nav-item">
+             <a class="nav-link" href="set_budget.html" id="setBudgetNav">Set Monthly Budget</a>
+           </li>
+           <li class="nav-item">
+             <a class="nav-link" href="profile.html" id="profileNav">Profile</a>
+           </li>
+           <li class="nav-item">
+             <a class="nav-link" href="login.html" id="signOutNav">Sign Out</a>
+           </li>
+         </ul>
+       </div>
+     </div>
+   </nav>
+   <div class="container py-3">
+     <div class="dashboard-header">
+       <div class="logo">
+         <span class="logo-icon">🍴</span> Meal Tracker
+       </div>
+       <div class="reset-btn">
+         <button class="btn btn-outline-secondary" id="resetBtn"><span class="me-1">⟳</span>Reset</button>
+       </div>
+     </div>
+     <div class="row mb-4 g-3 justify-content-center">
+       <div class="col-md-4">
+         <div class="card-metric text-center">
+           <div class="metric-label">Monthly Budget</div>
+           <div class="metric-value">₹<span id="budgetValue">0.00</span></div>
+         </div>
+       </div>
+       <div class="col-md-4">
+         <div class="card-metric text-center">
+           <div class="metric-label">Total Spent</div>
+           <div class="metric-value red">₹<span id="spentValue">0.00</span></div>
+         </div>
+       </div>
+       <div class="col-md-4">
+         <div class="card-metric text-center">
+           <div class="metric-label">Remaining Balance</div>
+           <div class="metric-value green">₹<span id="balanceValue">0.00</span></div>
+           <div class="progress mt-2">
+             <div class="progress-bar bg-success" id="balanceBar" role="progressbar" style="width: 100%"></div>
+           </div>
+         </div>
+       </div>
+     </div>
+     <div class="meals-section mb-4">
+       <div class="meals-header">
+         <div class="meals-title"><span class="me-2">🗓️</span> Today's Meals</div>
+         <div class="meals-count" id="mealsCount">0 meals</div>
+       </div>
+       <div id="todaysMealsList">
+         <div class="no-meals">
+           <div class="icon">🍴</div>
+           <div class="no-meals-title">No meals logged today</div>
+           <div class="text-muted">Start by logging your first meal!</div>
+         </div>
+       </div>
+     </div>
+     <div class="action-btns mb-4">
+       <button class="btn btn-success flex-fill" onclick="window.location.href='meal_log.html'">+ Log New Meal</button>
+       <button class="btn btn-outline-secondary flex-fill" onclick="window.location.href='dashboard.html'">⟳ View Meal History</button>
+       <button class="btn btn-info flex-fill" onclick="window.location.href='menu.html'">🍽️ Menu</button>
+     </div>
+   </div>
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+   <script>
+     const userEmail = localStorage.getItem('userEmail');
+     const userFullName = localStorage.getItem('userFullName');
+     const budgetValueElem = document.getElementById('budgetValue');
+     const balanceValueElem = document.getElementById('balanceValue');
+     const balanceBar = document.getElementById('balanceBar');
+     document.getElementById('welcomeText')?.remove(); // Remove old welcome text if present
 
-    <div class="text-center mb-4">
-      <h2 id="welcomeText">Welcome</h2>
-    </div>
+     // Fetch and display budget, total spent, and remaining balance
+     if (userEmail) {
+       fetch(`http://localhost:5000/api/meals/summary?email=${encodeURIComponent(userEmail)}`)
+         .then(res => res.json())
+         .then(summary => {
+           if (summary.monthly_budget !== undefined) {
+             document.getElementById('budgetValue').textContent = parseFloat(summary.monthly_budget).toFixed(2);
+             document.getElementById('spentValue').textContent = parseFloat(summary.total_spent).toFixed(2);
+             document.getElementById('balanceValue').textContent = parseFloat(summary.remaining_balance).toFixed(2);
+             // Update progress bar
+             const percent = summary.monthly_budget > 0 ? (summary.remaining_balance / summary.monthly_budget) * 100 : 0;
+             balanceBar.style.width = percent + '%';
+           }
+         });
 
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <div class="card-metric text-center">
-          <div class="metric-label d-flex justify-content-center align-items-center">
-            Monthly Budget
-          </div>
-          <div class="metric-value">₹<span id="budgetValue">0.00</span></div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card-metric text-center">
-          <div class="metric-label">Total Spent</div>
-          <div class="metric-value red">₹<span id="spentValue">0.00</span></div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card-metric text-center">
-          <div class="metric-label">Remaining Balance</div>
-          <div class="metric-value green">₹<span id="balanceValue">0.00</span></div>
-          <div class="progress">
-            <div class="progress-bar bg-success" id="balanceBar" role="progressbar" style="width: 100%"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+       // Fetch and display today's meals
+       fetch(`http://localhost:5000/api/meals/today?email=${encodeURIComponent(userEmail)}`)
+         .then(res => res.json())
+         .then(meals => {
+           const mealsCountElem = document.getElementById('mealsCount');
+           const mealsListElem = document.getElementById('todaysMealsList');
+           if (meals.length === 0) {
+             mealsCountElem.textContent = '0 meals';
+             mealsListElem.innerHTML = `<div class='no-meals'><div class='icon'>🍴</div><div class='no-meals-title'>No meals logged today</div><div class='text-muted'>Start by logging your first meal!</div></div>`;
+           } else {
+             mealsCountElem.textContent = `${meals.length} meal${meals.length > 1 ? 's' : ''}`;
+             mealsListElem.innerHTML = `<ul class='list-group list-group-flush'>${meals.map(m => `<li class='list-group-item'>${m.dish_name} <span class='badge bg-secondary ms-2'>${m.type}</span> <span class='text-muted small ms-2'>(${m.date})</span></li>`).join('')}</ul>`;
+           }
+         });
+     }
 
-    <!-- Meals section skipped for brevity -->
+     // Navbar actions
+     document.getElementById('setBudgetNav').addEventListener('click', function(e) {
+       // let anchor handle navigation
+     });
+     document.getElementById('profileNav').addEventListener('click', function(e) {
+       window.location.href = 'profile.html';
+     });
+     document.getElementById('signOutNav').addEventListener('click', function(e) {
+       localStorage.removeItem('userFullName');
+       localStorage.removeItem('userEmail');
+       localStorage.removeItem('monthlyBudget');
+     });
 
-    <div class="action-btns mb-4">
-      <button class="btn btn-success flex-fill" onclick="window.location.href='meal_log.html'">+ Log New Meal</button>
-      <button class="btn btn-outline-secondary flex-fill" onclick="window.location.href='dashboard.html'">⟳ View Meal History</button>
-      <button class="btn btn-info flex-fill" onclick="window.location.href='menu.html'">🍽️ Menu</button>
-    </div>
-  </div>
-
-  <!-- Modal -->
-  <div class="modal fade" id="editBudgetModal" tabindex="-1" aria-labelledby="editBudgetModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="editBudgetModalLabel">Set Monthly Budget</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <input type="number" min="0" class="form-control" id="newBudgetInput" placeholder="Enter new budget">
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" id="saveBudgetBtn">Save</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    const userEmail = localStorage.getItem('userEmail');
-    const userFullName = localStorage.getItem('userFullName');
-    const budgetValueElem = document.getElementById('budgetValue');
-    const balanceValueElem = document.getElementById('balanceValue');
-    const balanceBar = document.getElementById('balanceBar');
-
-    // Welcome name
-    document.getElementById('welcomeText').textContent = userFullName ? `Welcome, ${userFullName}` : 'Welcome';
-
-    // Fetch and display budget
-    if (userEmail) {
-      fetch(`http://localhost:5000/api/budget?email=${encodeURIComponent(userEmail)}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.budget !== undefined) {
-            const budget = parseFloat(data.budget).toFixed(2);
-            budgetValueElem.textContent = budget;
-            balanceValueElem.textContent = budget;
-            balanceBar.style.width = '100%';
-          }
-        });
-    }
-
-    // Edit budget modal
-    const editBudgetBtn = document.getElementById('editBudgetBtn');
-    const editBudgetModal = new bootstrap.Modal(document.getElementById('editBudgetModal'));
-    const newBudgetInput = document.getElementById('newBudgetInput');
-    const saveBudgetBtn = document.getElementById('saveBudgetBtn');
-
-    editBudgetBtn.addEventListener('click', () => {
-    newBudgetInput.value = document.getElementById('budgetValue').textContent;
-      editBudgetModal.show();
-    });
-
-    saveBudgetBtn.addEventListener('click', () => {
-      const newBudget = parseFloat(newBudgetInput.value);
-      if (!isNaN(newBudget) && newBudget >= 0) {
-        budgetValueElem.textContent = newBudget.toFixed(2);
-        balanceValueElem.textContent = newBudget.toFixed(2);
-        balanceBar.style.width = '100%';
-        localStorage.setItem('monthlyBudget', newBudget.toFixed(2));
-
-        if (userEmail) {
-          fetch('http://localhost:5000/api/budget', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: userEmail, budget: newBudget })
-          })
-            .then(res => res.json())
-            .then(data => {
-              if (data.error) alert(data.error);
-            })
-            .catch(() => {
-              alert('Error updating budget on server.');
-            });
-        }
-
-        editBudgetModal.hide();
-      } else {
-        alert('Please enter a valid budget amount.');
-      }
-    });
-
-    // Navbar actions
-    // Only handle sign out logic, let anchor tags handle navigation
-    document.getElementById('signOutNav').addEventListener('click', function(e) {
-      localStorage.removeItem('userFullName');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('monthlyBudget');
-    });
-
-    // Reset button functionality (placeholder)
-    document.getElementById('resetBtn').addEventListener('click', function() {
-      alert('Reset functionality coming soon!');
-    });
-  </script>
+     // Reset button functionality (placeholder)
+     document.getElementById('resetBtn').addEventListener('click', function() {
+       alert('Reset functionality coming soon!');
+     });
+   </script>
 </body>
 </html>

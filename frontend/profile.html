@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Profile - FoodTracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #e8f6ef 0%, #f8fbff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .navbar {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            font-weight: 600;
+        }
+        .profile-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 2.5rem 2rem 2rem 2rem;
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+            max-width: 480px;
+        }
+        .profile-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a3c34;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .profile-info {
+            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+        }
+        .profile-label {
+            font-weight: 600;
+            color: #15803d;
+            margin-right: 0.5rem;
+        }
+        .profile-value {
+            color: #222;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">FoodTracker</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.html" id="signOutNav">Sign Out</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container d-flex justify-content-center">
+        <div class="profile-card w-100">
+            <div class="profile-title">Profile</div>
+            <div class="profile-info"><span class="profile-label">Name:</span> <span class="profile-value" id="profileName">-</span></div>
+            <div class="profile-info"><span class="profile-label">Email:</span> <span class="profile-value" id="profileEmail">-</span></div>
+            <div class="profile-info"><span class="profile-label">Monthly Budget:</span> <span class="profile-value" id="profileBudget">-</span></div>
+            <div class="profile-info"><span class="profile-label">Remaining Budget:</span> <span class="profile-value" id="profileBalance">-</span></div>
+            <hr class="my-4" />
+            <div class="profile-title" style="font-size:1.3rem; margin-bottom:1rem;">Change Password</div>
+            <form id="changePasswordForm" autocomplete="off">
+                <div class="mb-3">
+                    <label for="oldPassword" class="form-label">Old Password</label>
+                    <input type="password" class="form-control" id="oldPassword" required />
+                </div>
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="newPassword" required />
+                    <div id="passwordCriteria" class="criteria-box mt-2">
+                        <ul class="criteria-list list-unstyled mb-0">
+                            <li id="length" class="invalid">At least 8 characters</li>
+                            <li id="lowercase" class="invalid">At least 1 lowercase letter</li>
+                            <li id="uppercase" class="invalid">At least 1 uppercase letter</li>
+                            <li id="special" class="invalid">At least 1 special character</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+                    <input type="password" class="form-control" id="confirmNewPassword" required />
+                    <div id="matchMessage" class="match-message"></div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Change Password</button>
+            </form>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('signOutNav').addEventListener('click', function(e) {
+            localStorage.removeItem('userFullName');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('monthlyBudget');
+        });
+        const userEmail = localStorage.getItem('userEmail');
+        const userFullName = localStorage.getItem('userFullName');
+        document.getElementById('profileName').textContent = userFullName || '-';
+        document.getElementById('profileEmail').textContent = userEmail || '-';
+        if (userEmail) {
+            fetch(`http://localhost:5000/api/meals/summary?email=${encodeURIComponent(userEmail)}`)
+                .then(res => res.json())
+                .then(summary => {
+                    if (summary.monthly_budget !== undefined) {
+                        document.getElementById('profileBudget').textContent = '₹' + parseFloat(summary.monthly_budget).toFixed(2);
+                        document.getElementById('profileBalance').textContent = '₹' + parseFloat(summary.remaining_balance).toFixed(2);
+                    }
+                });
+        }
+        // Password validation logic (same as signup)
+        const newPasswordInput = document.getElementById('newPassword');
+        const confirmNewPasswordInput = document.getElementById('confirmNewPassword');
+        const criteriaBox = document.getElementById('passwordCriteria');
+        const matchMessage = document.getElementById('matchMessage');
+        const criteria = {
+            length: false,
+            lowercase: false,
+            uppercase: false,
+            special: false
+        };
+        function validatePasswordCriteria(password) {
+            criteria.length = password.length >= 8;
+            criteria.lowercase = /[a-z]/.test(password);
+            criteria.uppercase = /[A-Z]/.test(password);
+            criteria.special = /[^A-Za-z0-9]/.test(password);
+            document.getElementById('length').className = criteria.length ? 'valid' : 'invalid';
+            document.getElementById('lowercase').className = criteria.lowercase ? 'valid' : 'invalid';
+            document.getElementById('uppercase').className = criteria.uppercase ? 'valid' : 'invalid';
+            document.getElementById('special').className = criteria.special ? 'valid' : 'invalid';
+            if (criteria.length && criteria.lowercase && criteria.uppercase && criteria.special) {
+                criteriaBox.classList.add('valid');
+                criteriaBox.classList.remove('invalid');
+            } else {
+                criteriaBox.classList.remove('valid');
+                criteriaBox.classList.add('invalid');
+            }
+        }
+        function validatePasswordMatch() {
+            if (confirmNewPasswordInput.value === '') {
+                matchMessage.textContent = '';
+                matchMessage.className = 'match-message';
+                return;
+            }
+            if (newPasswordInput.value === confirmNewPasswordInput.value) {
+                matchMessage.textContent = 'Passwords match';
+                matchMessage.className = 'match-message valid';
+            } else {
+                matchMessage.textContent = 'Passwords do not match';
+                matchMessage.className = 'match-message invalid';
+            }
+        }
+        newPasswordInput.addEventListener('input', function() {
+            validatePasswordCriteria(newPasswordInput.value);
+            validatePasswordMatch();
+        });
+        confirmNewPasswordInput.addEventListener('input', validatePasswordMatch);
+        // Change password form submit
+        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!(criteria.length && criteria.lowercase && criteria.uppercase && criteria.special)) {
+                alert('New password does not meet all criteria!');
+                return;
+            }
+            if (newPasswordInput.value !== confirmNewPasswordInput.value) {
+                alert('Passwords do not match!');
+                return;
+            }
+            const userEmail = localStorage.getItem('userEmail');
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = newPasswordInput.value;
+            fetch('http://localhost:5000/api/change_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail, old_password: oldPassword, new_password: newPassword })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message) {
+                    alert('Password changed successfully!');
+                    document.getElementById('changePasswordForm').reset();
+                    validatePasswordCriteria('');
+                    validatePasswordMatch();
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(() => {
+                alert('Error changing password.');
+            });
+        });
+        // Initial validation state
+        validatePasswordCriteria('');
+    </script>
+</body>
+</html> 

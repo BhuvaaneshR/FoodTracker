@@ -1,24 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - FoodTracker</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Meal History - FoodTracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #e8f6ef 0%, #f8fbff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .navbar {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            font-weight: 600;
+        }
+        .history-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 2rem 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        .history-title {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #1a3c34;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .table {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        @media (max-width: 600px) {
+            .history-card {
+                padding: 1.2rem 0.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <div class="container">
-    <a class="navbar-brand" href="index.html">FoodTracker</a>
-    <div>
-      <a class="nav-link d-inline" href="login.html">Login</a>
-      <a class="nav-link d-inline" href="signup.html">Sign Up</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">FoodTracker</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.html" id="signOutNav">Sign Out</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container history-card">
+        <div class="history-title">Meal History</div>
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Dish Name</th>
+                    <th>Type</th>
+                    <th>Amount (₹)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="historyTableBody">
+                <!-- Meal history will be inserted here -->
+            </tbody>
+        </table>
     </div>
-  </div>
-</nav>
-    <div class="container mt-5">
-        <h2>Dashboard</h2>
-        <!-- Dashboard content will go here -->
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('signOutNav').addEventListener('click', function(e) {
+            localStorage.removeItem('userFullName');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('monthlyBudget');
+        });
+        const userEmail = localStorage.getItem('userEmail');
+        if (userEmail) {
+            fetch(`http://localhost:5000/api/meals/history?email=${encodeURIComponent(userEmail)}`)
+                .then(res => res.json())
+                .then(meals => {
+                    const tbody = document.getElementById('historyTableBody');
+                    if (meals.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan='5' class='text-center text-muted'>No meal history found.</td></tr>`;
+                    } else {
+                        tbody.innerHTML = meals.map(m => `<tr><td>${m.date}</td><td>${m.dish_name}</td><td>${m.type}</td><td>₹${m.price.toFixed(2)}</td><td><button class='btn btn-danger btn-sm delete-meal-btn' data-id='${m.id}'>Delete</button></td></tr>`).join('');
+                        document.querySelectorAll('.delete-meal-btn').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const mealId = this.getAttribute('data-id');
+                                if (confirm('Are you sure you want to delete this meal?')) {
+                                    fetch(`http://localhost:5000/api/meals/${mealId}`, {
+                                        method: 'DELETE'
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.message) {
+                                            location.reload();
+                                        } else if (data.error) {
+                                            alert(data.error);
+                                        }
+                                    })
+                                    .catch(() => {
+                                        alert('Error deleting meal.');
+                                    });
+                                }
+                            });
+                        });
+                    }
+                });
+        }
+    </script>
 </body>
 </html> 
