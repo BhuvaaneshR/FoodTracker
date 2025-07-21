@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodTracker Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e8f6ef 0%, #f8fbff 100%);
+            min-height: 100vh;
+        }
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 0 1rem 0;
+        }
+        .dashboard-header .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a3c34;
+            display: flex;
+            align-items: center;
+        }
+        .dashboard-header .logo-icon {
+            font-size: 2rem;
+            margin-right: 0.5rem;
+        }
+        .dashboard-header .reset-btn {
+            font-size: 1.1rem;
+        }
+        .card-metric {
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            padding: 1.5rem 1.2rem;
+            margin-bottom: 1rem;
+            background: #fff;
+        }
+        .card-metric .metric-label {
+            font-size: 1rem;
+            color: #555;
+        }
+        .card-metric .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .card-metric .metric-value.red {
+            color: #e53935;
+        }
+        .card-metric .metric-value.green {
+            color: #43a047;
+        }
+        .card-metric .progress {
+            height: 8px;
+            margin-top: 0.5rem;
+        }
+        .meals-section {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .meals-section .meals-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .meals-section .meals-header .meals-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .meals-section .meals-header .meals-count {
+            background: #f1f3f4;
+            border-radius: 12px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.95rem;
+            color: #333;
+        }
+        .meals-section .no-meals {
+            text-align: center;
+            color: #888;
+            margin-top: 2rem;
+        }
+        .meals-section .no-meals .icon {
+            font-size: 3rem;
+            color: #d1d5db;
+            margin-bottom: 0.5rem;
+        }
+        .action-btns {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .action-btns .btn {
+            font-size: 1.2rem;
+            padding: 1rem 0;
+            border-radius: 10px;
+        }
+        @media (max-width: 768px) {
+            .dashboard-header, .action-btns {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .dashboard-header {
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-3">
+        <div class="dashboard-header">
+            <div class="logo">
+                <span class="logo-icon">🍴</span> Meal Tracker
+            </div>
+            <div class="reset-btn">
+                <button class="btn btn-outline-secondary" id="resetBtn"><span class="me-1">⟳</span>Reset</button>
+            </div>
+        </div>
+        <div class="text-center mb-4">
+            <h2 id="welcomeText">Welcome</h2>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card-metric text-center">
+                    <div class="metric-label">Monthly Budget</div>
+                    <div class="metric-value">₹<span id="budgetValue">1800.00</span></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-metric text-center">
+                    <div class="metric-label">Total Spent</div>
+                    <div class="metric-value red">₹<span id="spentValue">0.00</span></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-metric text-center">
+                    <div class="metric-label">Remaining Balance</div>
+                    <div class="metric-value green">₹<span id="balanceValue">1800.00</span></div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" id="balanceBar" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="meals-section mb-4">
+            <div class="meals-header">
+                <div class="meals-title">Today's Meals</div>
+                <div class="meals-count" id="mealsCount">0 meals</div>
+            </div>
+            <div class="no-meals">
+                <div class="icon">🍴</div>
+                <div>No meals logged today</div>
+                <div class="text-muted">Start by logging your first meal!</div>
+            </div>
+        </div>
+        <div class="action-btns mb-4">
+            <button class="btn btn-success flex-fill" onclick="window.location.href='meal_log.html'">
+                + Log New Meal
+            </button>
+            <button class="btn btn-outline-secondary flex-fill" onclick="window.location.href='dashboard.html'">
+                ⟳ View Meal History
+            </button>
+        </div>
+    </div>
+    <script>
+        // Set welcome text with user's name
+        const userFullName = localStorage.getItem('userFullName');
+        if (userFullName) {
+            document.getElementById('welcomeText').textContent = `Welcome, ${userFullName}`;
+        } else {
+            document.getElementById('welcomeText').textContent = 'Welcome';
+        }
+        // Reset button functionality (placeholder)
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            alert('Reset functionality coming soon!');
+        });
+    </script>
+</body>
+</html> 
